@@ -5,7 +5,8 @@ import { FiInstagram, FiLinkedin, FiMail } from 'react-icons/fi';
 const getFullImageUrl = (url) => {
   if (!url) return '';
   if (url.startsWith('http')) return url;
-  return `http://localhost:5000${url}`;
+  const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+  return `${baseUrl}${url}`;
 };
 
 const CoordinatorCard = ({ member, isHead = false }) => {

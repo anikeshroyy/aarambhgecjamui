@@ -55,7 +55,8 @@ const EventForm = () => {
         
         const imgUrl = eventData.imageUrl;
         if (imgUrl && imgUrl.startsWith('/uploads')) {
-          setImagePreview(`http://localhost:5000${imgUrl}`);
+          const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+          setImagePreview(`${baseUrl}${imgUrl}`);
         } else {
           setImagePreview(imgUrl || '');
         }

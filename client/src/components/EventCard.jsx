@@ -8,7 +8,8 @@ import { toast } from 'react-hot-toast';
 const getFullImageUrl = (url) => {
   if (!url) return '';
   if (url.startsWith('http')) return url;
-  return `http://localhost:5000${url}`;
+  const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+  return `${baseUrl}${url}`;
 };
 
 const EventCard = ({ event }) => {
