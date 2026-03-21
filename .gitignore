@@ -11,10 +11,13 @@ server/build/
 
 # Environment variables
 .env
+.env.*
 .env.local
 .env.*.local
 client/.env
+client/.env.*
 server/.env
+server/.env.*
 
 # IDEs and Editors
 .vscode/
