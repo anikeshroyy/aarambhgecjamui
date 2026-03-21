@@ -9,6 +9,11 @@ const adminSchema = new mongoose.Schema({
   password: {
     type: String,
     required: true
+  },
+  role: {
+    type: String,
+    enum: ['global', 'technical', 'cultural', 'sports'],
+    default: 'technical'
   }
 }, { timestamps: true });
 

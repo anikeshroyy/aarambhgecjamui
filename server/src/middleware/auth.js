@@ -14,7 +14,7 @@ const verifyToken = async (req, res, next) => {
     // JWT verification
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'aarambh_jwt_secret_key_123');
     
-    // Add decoded user (admin ID) to request object
+    // Add decoded user (admin ID and role) to request object
     req.user = decoded;
     
     next();
@@ -27,4 +27,13 @@ const verifyToken = async (req, res, next) => {
   }
 };
 
-module.exports = { verifyToken };
+const checkRole = (allowedRoles) => {
+  return (req, res, next) => {
+    if (!req.user || !allowedRoles.includes(req.user.role)) {
+      return res.status(403).json({ error: 'Forbidden: Insufficient permissions for this action' });
+    }
+    next();
+  };
+};
+
+module.exports = { verifyToken, checkRole };

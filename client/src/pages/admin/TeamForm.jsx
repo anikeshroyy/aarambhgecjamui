@@ -1,21 +1,26 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import teamService from '../../services/teamService';
+import { useAuth } from '../../context/AuthContext';
 import toast, { Toaster } from 'react-hot-toast';
 import { FiArrowLeft, FiUploadCloud, FiInstagram, FiLinkedin, FiMail, FiMapPin } from 'react-icons/fi';
 
 const TeamForm = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const isEditing = !!id;
 
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(isEditing);
   
+  // Set default section based on role if not editing
+  const defaultSection = user?.role !== 'global' ? (user?.role || 'technical') : 'technical';
+  
   // Form State
   const [name, setName] = useState('');
   const [role, setRole] = useState('');
-  const [section, setSection] = useState('technical');
+  const [section, setSection] = useState(defaultSection);
   const [branch, setBranch] = useState('');
   const [year, setYear] = useState('');
   const [order, setOrder] = useState('0');
@@ -196,16 +201,23 @@ const TeamForm = () => {
               <select
                 value={section}
                 onChange={(e) => setSection(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-dark-border bg-white dark:bg-dark-bg text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+                disabled={user?.role !== 'global'}
+                className={`w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-dark-border bg-white dark:bg-dark-bg text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all ${user?.role !== 'global' ? 'opacity-70 cursor-not-allowed' : ''}`}
               >
-                <option value="faculty">Faculty Heads</option>
-                <option value="organizing">Organizing Coordinator</option>
-                <option value="core">Core Committee</option>
-                <option value="technical">Technical Coordinator</option>
-                <option value="cultural">Cultural Coordinator</option>
-                <option value="sports">Sports Coordinator</option>
-                <option value="hospitality">Hospitality & PR</option>
-                <option value="media">Media Coordinator</option>
+                {user?.role === 'global' ? (
+                  <>
+                    <option value="faculty">Faculty Heads</option>
+                    <option value="organizing">Organizing Coordinator</option>
+                    <option value="core">Core Committee</option>
+                    <option value="technical">Technical Coordinator</option>
+                    <option value="cultural">Cultural Coordinator</option>
+                    <option value="sports">Sports Coordinator</option>
+                    <option value="hospitality">Hospitality & PR</option>
+                    <option value="media">Media Coordinator</option>
+                  </>
+                ) : (
+                  <option value={user?.role}>{user?.role?.charAt(0).toUpperCase() + user?.role?.slice(1)} Coordinator</option>
+                )}
               </select>
             </div>
 

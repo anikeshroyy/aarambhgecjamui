@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import SectionHeading from '../../components/SectionHeading';
 import { FiArrowRight, FiCalendar, FiMapPin, FiCheckCircle, FiImage, FiEdit3, FiLayers } from 'react-icons/fi';
 import principalImg from '../../assets/principal.jpg';
-import convenerImg from '../../assets/convener.gif';
+
 import gallery1 from '../../assets/gallery1.gif';
 import gallery2 from '../../assets/gallery2.gif';
 import gallery3 from '../../assets/gallery3.gif';
@@ -200,12 +200,6 @@ const About = () => {
                 role="Principal, GEC Jamui"
                 imageSrc={principalImg}
                 message="Aarambh 3.0 is a testament to the creativity and technical prowess of our students. It's more than just a fest; it's a platform where innovation meets culture. We invite you to experience this journey of excellence and witness the beginning of something extraordinary."
-              />
-              <MessageCard 
-                name="Prof. Prashant Kumar"
-                role="Convener, Aarambh 2024"
-                imageSrc={convenerImg}
-                message="As we unveil the third edition of our annual flagship event, our goal is to merge technical rigor with cultural vibrancy into a seamless celebration of student life. Aarambh 3.0 is designed to challenge limits and provide an unforgettable experience for every participant."
               />
             </div>
           </div>

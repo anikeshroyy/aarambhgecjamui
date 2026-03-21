@@ -33,16 +33,21 @@ const getMemberById = async (req, res) => {
 
 const createMember = async (req, res) => {
   try {
-    const { name, role, section, branch, year, order, socialLinks } = req.body;
-    let imageUrl = '';
+    const { name, role: memberRole, section, branch, year, order, socialLinks } = req.body;
+    
+    // Role-based validation
+    if (req.user.role !== 'global' && req.user.role !== section) {
+      return res.status(403).json({ error: `Forbidden: You can only add members to the ${req.user.role} section` });
+    }
 
+    let imageUrl = '';
     if (req.file) {
       imageUrl = `/uploads/${req.file.filename}`;
     }
 
     const newMember = new Team({
       name,
-      role,
+      role: memberRole,
       section,
       branch,
       year,
@@ -62,11 +67,27 @@ const createMember = async (req, res) => {
 const updateMember = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, role, section, branch, year, order, socialLinks } = req.body;
+    const { name, role: memberRole, section, branch, year, order, socialLinks } = req.body;
+
+    const existingMember = await Team.findById(id);
+    if (!existingMember) {
+      return res.status(404).json({ error: 'Team member not found' });
+    }
+
+    // Role-based validation
+    if (req.user.role !== 'global' && req.user.role !== existingMember.section) {
+      return res.status(403).json({ error: `Forbidden: You can only update members in the ${req.user.role} section` });
+    }
+
+    // If changing section, check new section permission too
+    if (section && req.user.role !== 'global' && req.user.role !== section) {
+      return res.status(403).json({ error: `Forbidden: You cannot move members to the ${section} section` });
+    }
+
     const updateData = {};
 
     if (name) updateData.name = name;
-    if (role) updateData.role = role;
+    if (memberRole) updateData.role = memberRole;
     if (section) updateData.section = section;
     if (branch !== undefined) updateData.branch = branch;
     if (year !== undefined) updateData.year = year;
@@ -102,6 +123,11 @@ const deleteMember = async (req, res) => {
     const member = await Team.findById(id);
     if (!member) {
        return res.status(404).json({ error: 'Team member not found' });
+    }
+
+    // Role-based validation
+    if (req.user.role !== 'global' && req.user.role !== member.section) {
+      return res.status(403).json({ error: `Forbidden: You can only remove members from the ${req.user.role} section` });
     }
 
     if (member.imageUrl) {

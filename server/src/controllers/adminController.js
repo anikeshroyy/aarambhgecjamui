@@ -14,23 +14,21 @@ const login = async (req, res) => {
     console.log(`\n[Auth] Login attempt received for email: "${email}"...`);
 
     // Find admin by email
-    const admin = await Admin.findOne({ email });
+    let admin = await Admin.findOne({ email });
     if (!admin) {
       // Create seed admin if none exists (for first time setup)
       if (email === 'admin@gec.jamui.ac.in' && password === 'admin123') {
-        console.log('[Auth] Admin not found. Seeding first default admin...');
+        console.log('[Auth] Admin not found. Seeding first default admin (Global)...');
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
-        const newAdmin = new Admin({ email, password: hashedPassword });
-        await newAdmin.save();
+        admin = new Admin({ email, password: hashedPassword, role: 'global' });
+        await admin.save();
         
-        console.log('[Auth] Admin successfully created and authenticated.');
-        const token = jwt.sign({ id: newAdmin._id }, process.env.JWT_SECRET || 'aarambh_jwt_secret_key_123', { expiresIn: '7d' });
-        return res.json({ token, message: 'Initial admin created and logged in' });
+        console.log('[Auth] Global Admin successfully created and authenticated.');
+      } else {
+        console.log(`[Auth] No admin found matching exactly: "${email}". Failing.`);
+        return res.status(401).json({ error: 'Invalid credentials' });
       }
-      
-      console.log(`[Auth] No admin found matching exactly: "${email}". Failing.`);
-      return res.status(401).json({ error: 'Invalid credentials' });
     }
 
     // Check password
@@ -40,11 +38,22 @@ const login = async (req, res) => {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
-    // Generate token
-    console.log(`[Auth] Password valid. Emitting token for: ${email}`);
-    const token = jwt.sign({ id: admin._id }, process.env.JWT_SECRET || 'aarambh_jwt_secret_key_123', { expiresIn: '7d' });
+    // Migrating legacy admins / ensuring primary admin is always global
+    if (admin.email === 'admin@gec.jamui.ac.in' && admin.role !== 'global') {
+      admin.role = 'global';
+      await admin.save();
+      console.log(`[Auth] Upgraded primary admin to global role`);
+    }
 
-    res.json({ token });
+    // Generate token
+    console.log(`[Auth] Password valid. Emitting token for: ${email} (${admin.role})`);
+    const token = jwt.sign(
+      { id: admin._id, role: admin.role }, 
+      process.env.JWT_SECRET || 'aarambh_jwt_secret_key_123', 
+      { expiresIn: '7d' }
+    );
+
+    res.json({ token, role: admin.role });
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({ error: 'Internal server error during login' });
@@ -52,11 +61,63 @@ const login = async (req, res) => {
 };
 
 const verify = async (req, res) => {
-  // If the request made it past the auth middleware, the token is valid
-  res.json({ valid: true, user: req.user });
+  try {
+    const admin = await Admin.findById(req.user.id).select('-password');
+    if (!admin) {
+      return res.status(401).json({ valid: false, error: 'Admin not found' });
+    }
+    res.json({ valid: true, user: { id: admin._id, email: admin.email, role: admin.role } });
+  } catch (error) {
+    res.status(500).json({ valid: false, error: 'Verification failed' });
+  }
+};
+
+// Admin Management (Global only)
+const createAdmin = async (req, res) => {
+  try {
+    const { email, password, role } = req.body;
+    
+    let admin = await Admin.findOne({ email });
+    if (admin) return res.status(400).json({ error: 'Admin already exists' });
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    admin = new Admin({ email, password: hashedPassword, role });
+    await admin.save();
+    
+    res.json({ message: 'Admin created successfully', admin: { id: admin._id, email: admin.email, role: admin.role } });
+  } catch (error) {
+    res.status(500).json({ error: 'Server error creating admin' });
+  }
+};
+
+const getAdmins = async (req, res) => {
+  try {
+    const admins = await Admin.find().select('-password');
+    res.json(admins);
+  } catch (error) {
+    res.status(500).json({ error: 'Server error fetching admins' });
+  }
+};
+
+const deleteAdmin = async (req, res) => {
+  try {
+    const admin = await Admin.findById(req.params.id);
+    if (!admin) return res.status(404).json({ error: 'Admin not found' });
+    if (admin.role === 'global') return res.status(403).json({ error: 'Cannot delete global admin' });
+
+    await Admin.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Admin removed successfully' });
+  } catch (error) {
+    res.status(500).json({ error: 'Server error deleting admin' });
+  }
 };
 
 module.exports = {
   login,
-  verify
+  verify,
+  createAdmin,
+  getAdmins,
+  deleteAdmin
 };

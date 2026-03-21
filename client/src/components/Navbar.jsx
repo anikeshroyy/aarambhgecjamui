@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { NavLink, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiMenu, FiX } from 'react-icons/fi';
+import { FiMenu, FiX, FiLogIn } from 'react-icons/fi';
 import ThemeToggle from './ThemeToggle';
 
 const Navbar = () => {
@@ -78,8 +78,15 @@ const Navbar = () => {
                 {link.name}
               </NavLink>
             ))}
-            <div className="pl-4 border-l border-gray-300 dark:border-gray-600">
+            <div className="pl-4 border-l border-gray-300 dark:border-gray-600 flex items-center gap-4">
               <ThemeToggle />
+              <Link
+                to="/admin/login"
+                className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-primary hover:bg-yellow-600 rounded-lg transition-colors shadow-sm"
+              >
+                <FiLogIn className="w-4 h-4" />
+                Login
+              </Link>
             </div>
           </nav>
 
@@ -130,6 +137,14 @@ const Navbar = () => {
                     {link.name}
                   </NavLink>
                 ))}
+                <Link
+                  to="/admin/login"
+                  onClick={() => setIsOpen(false)}
+                  className="flex items-center gap-2 mt-4 px-4 py-3 text-sm font-semibold text-white bg-primary hover:bg-yellow-600 rounded-lg transition-colors text-center justify-center"
+                >
+                  <FiLogIn className="w-4 h-4" />
+                  Login
+                </Link>
               </nav>
             </motion.div>
           </>

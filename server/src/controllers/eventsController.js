@@ -34,10 +34,14 @@ const getEventById = async (req, res) => {
 const createEvent = async (req, res) => {
   try {
     const { title, description, category, googleFormUrl, isActive, tags } = req.body;
-    let imageUrl = '';
+    
+    // Role-based validation
+    if (req.user.role !== 'global' && req.user.role !== category) {
+      return res.status(403).json({ error: `Forbidden: You can only create ${req.user.role} events` });
+    }
 
+    let imageUrl = '';
     if (req.file) {
-      // Store relative path. The frontend will prepend the backend URL.
       imageUrl = `/uploads/${req.file.filename}`;
     }
 
@@ -63,6 +67,22 @@ const updateEvent = async (req, res) => {
   try {
     const { id } = req.params;
     const { title, description, category, googleFormUrl, isActive, tags } = req.body;
+
+    const existingEvent = await Event.findById(id);
+    if (!existingEvent) {
+      return res.status(404).json({ error: 'Event not found' });
+    }
+
+    // Role-based validation
+    if (req.user.role !== 'global' && req.user.role !== existingEvent.category) {
+      return res.status(403).json({ error: `Forbidden: You can only update ${req.user.role} events` });
+    }
+
+    // If changing category, check new category permission too
+    if (category && req.user.role !== 'global' && req.user.role !== category) {
+      return res.status(403).json({ error: `Forbidden: You cannot change event category to ${category}` });
+    }
+
     const updateData = {};
 
     if (title) updateData.title = title;
@@ -102,6 +122,11 @@ const deleteEvent = async (req, res) => {
     const event = await Event.findById(id);
     if (!event) {
        return res.status(404).json({ error: 'Event not found' });
+    }
+
+    // Role-based validation
+    if (req.user.role !== 'global' && req.user.role !== event.category) {
+      return res.status(403).json({ error: `Forbidden: You can only delete ${req.user.role} events` });
     }
 
     // Delete image from disk if it exists

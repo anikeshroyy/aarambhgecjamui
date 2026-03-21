@@ -27,6 +27,9 @@ import TeamList from './pages/admin/TeamList';
 import TeamForm from './pages/admin/TeamForm';
 import GalleryList from './pages/admin/GalleryList';
 import GalleryUpload from './pages/admin/GalleryUpload';
+import SponsorsList from './pages/admin/SponsorsList';
+import SponsorForm from './pages/admin/SponsorForm';
+import AdminManagement from './pages/admin/AdminManagement';
 
 // Custom wrapper for public layout (Navbar + Footer)
 const PublicLayout = ({ children }) => (
@@ -71,6 +74,10 @@ const AnimatedRoutes = () => {
               <Route path="/admin/team/edit/:id" element={<TeamForm />} />
               <Route path="/admin/gallery" element={<GalleryList />} />
               <Route path="/admin/gallery/upload" element={<GalleryUpload />} />
+              <Route path="/admin/sponsors" element={<SponsorsList />} />
+              <Route path="/admin/sponsors/add" element={<SponsorForm />} />
+              <Route path="/admin/sponsors/edit/:id" element={<SponsorForm />} />
+              <Route path="/admin/accounts" element={<AdminManagement />} />
             </Route>
           </Route>
           

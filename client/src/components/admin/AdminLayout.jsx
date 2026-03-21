@@ -1,6 +1,6 @@
 import { Outlet, Navigate, NavLink, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { FiLayout, FiCalendar, FiUsers, FiImage, FiLogOut, FiMenu, FiX, FiHome } from 'react-icons/fi';
+import { FiLayout, FiCalendar, FiUsers, FiImage, FiLogOut, FiMenu, FiX, FiHome, FiGift, FiShield } from 'react-icons/fi';
 import { useState } from 'react';
 import { Toaster } from 'react-hot-toast';
 
@@ -20,6 +20,11 @@ const AdminLayout = () => {
     { path: '/admin/team', icon: FiUsers, label: 'Team' },
     { path: '/admin/gallery', icon: FiImage, label: 'Gallery' },
   ];
+
+  if (user?.role === 'global') {
+    menuItems.push({ path: '/admin/sponsors', icon: FiGift, label: 'Sponsors' });
+    menuItems.push({ path: '/admin/accounts', icon: FiShield, label: 'Manage Admins' });
+  }
 
   if (!user) {
     return <Navigate to="/admin/login" replace />;

@@ -4,27 +4,33 @@ import { Link } from 'react-router-dom';
 import CountdownTimer from '../../components/CountdownTimer';
 import SectionHeading from '../../components/SectionHeading';
 import eventsService from '../../services/eventsService';
+import sponsorsService from '../../services/sponsorsService';
 // We'll scaffold EventCard soon, importing it here ahead of time
 // import EventCard from '../../components/EventCard';
 
 const Home = () => {
   const [featuredEvents, setFeaturedEvents] = useState([]);
+  const [sponsors, setSponsors] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchEvents = async () => {
+    const fetchData = async () => {
       try {
-        // Just fetch all and take first 3 for now
-        const data = await eventsService.getAll();
-        setFeaturedEvents(data.slice(0, 3));
+        const [eventsData, sponsorsData] = await Promise.all([
+          eventsService.getAll(),
+          sponsorsService.getAll()
+        ]);
+        
+        setFeaturedEvents(eventsData.slice(0, 3));
+        setSponsors(sponsorsData);
       } catch (error) {
-        console.error('Failed to fetch featured events:', error);
+        console.error('Failed to fetch home data:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchEvents();
+    fetchData();
   }, []);
 
   return (
@@ -575,12 +581,32 @@ const Home = () => {
       <section className="py-16 bg-white dark:bg-dark-card border-t border-gray-100 dark:border-dark-border transition-colors duration-300">
         <div className="container mx-auto px-4 text-center">
           <p className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-8">Trusted by our amazing partners</p>
-          <div className="flex flex-wrap justify-center items-center gap-8 md:gap-16 opacity-50 dark:opacity-40 grayscale hover:grayscale-0 transition-all duration-300">
-            {/* Logos Placeholders */}
-            <h2 className="text-3xl font-display font-black text-gray-800 dark:text-white">SPONSOR 1</h2>
-            <h2 className="text-3xl font-display font-black text-gray-800 dark:text-white">SPONSOR 2</h2>
-            <h2 className="text-3xl font-display font-black text-gray-800 dark:text-white">SPONSOR 3</h2>
-            <h2 className="text-3xl font-display font-black text-gray-800 dark:text-white">SPONSOR 4</h2>
+          <div className="flex flex-wrap justify-center items-center gap-8 md:gap-16 opacity-60 dark:opacity-50 grayscale hover:grayscale-0 transition-all duration-300">
+            {loading ? (
+              <span className="text-gray-400">Loading sponsors...</span>
+            ) : sponsors.length > 0 ? (
+              sponsors.map(sponsor => (
+                <a 
+                  key={sponsor._id} 
+                  href={sponsor.websiteUrl || '#'} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="block h-12 md:h-16 hover:scale-110 transition-transform"
+                  title={sponsor.name}
+                >
+                  <img 
+                    src={sponsor.imageUrl.startsWith('/uploads') ? `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}${sponsor.imageUrl}` : sponsor.imageUrl} 
+                    alt={sponsor.name}
+                    className="h-full w-auto object-contain"
+                  />
+                </a>
+              ))
+            ) : (
+              <>
+                <h2 className="text-3xl font-display font-black text-gray-800 dark:text-white">GEC JAMUI</h2>
+                <h2 className="text-3xl font-display font-black text-gray-800 dark:text-white">AARAMBH</h2>
+              </>
+            )}
           </div>
         </div>
       </section>

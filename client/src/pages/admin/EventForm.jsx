@@ -1,21 +1,26 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import eventsService from '../../services/eventsService';
+import { useAuth } from '../../context/AuthContext';
 import toast, { Toaster } from 'react-hot-toast';
 import { FiArrowLeft, FiUploadCloud, FiX } from 'react-icons/fi';
 
 const EventForm = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const isEditing = !!id;
 
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(isEditing);
   
+  // Set default category based on role if not editing
+  const defaultCategory = user?.role !== 'global' ? (user?.role || 'technical') : 'technical';
+  
   // Form State
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [category, setCategory] = useState('technical');
+  const [category, setCategory] = useState(defaultCategory);
   const [day, setDay] = useState('1');
   const [date, setDate] = useState('7 April 2026');
   const [time, setTime] = useState('11:00 AM - 01:00 PM');
@@ -218,12 +223,19 @@ const EventForm = () => {
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-dark-border bg-white dark:bg-dark-bg text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+                disabled={user?.role !== 'global'}
+                className={`w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-dark-border bg-white dark:bg-dark-bg text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all ${user?.role !== 'global' ? 'opacity-70 cursor-not-allowed' : ''}`}
               >
-                <option value="technical">Technical</option>
-                <option value="cultural">Cultural</option>
-                <option value="sports">Sports</option>
-                <option value="creative">Creative</option>
+                {user?.role === 'global' ? (
+                  <>
+                    <option value="technical">Technical</option>
+                    <option value="cultural">Cultural</option>
+                    <option value="sports">Sports</option>
+                    <option value="creative">Creative</option>
+                  </>
+                ) : (
+                  <option value={user?.role}>{user?.role?.charAt(0).toUpperCase() + user?.role?.slice(1)}</option>
+                )}
               </select>
             </div>
 

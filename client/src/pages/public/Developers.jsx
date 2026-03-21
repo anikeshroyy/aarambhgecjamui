@@ -1,20 +1,83 @@
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { FiGithub, FiLinkedin, FiInstagram, FiCode, FiLayers, FiGitCommit, FiUsers, FiClock } from 'react-icons/fi';
+import { FiGithub, FiLinkedin, FiInstagram, FiCode, FiGitCommit, FiUsers, FiStar } from 'react-icons/fi';
 import SectionHeading from '../../components/SectionHeading';
 
-const Developers = () => {
-  const devStats = [
-    { label: 'Total Commits', value: '142', icon: <FiGitCommit />, color: 'purple' },
-    { label: 'Contributors', value: '1', icon: <FiUsers />, color: 'blue' },
-    { label: 'Last Commit', value: 'Today', icon: <FiClock />, color: 'green' },
-    { label: 'Lines of Code', value: '12K+', icon: <FiCode />, color: 'primary' },
-  ];
+const GITHUB_USERNAME = 'anikeshroyy';
+const GITHUB_REPO = `${GITHUB_USERNAME}/aarambhgecjamui`;
 
-  const buildLogs = [
-    { date: 'March 15, 2026', title: 'Phase 15: Developer Recognition', status: 'Completed' },
-    { date: 'March 14, 2026', title: 'Phase 14: Stats Section Redesign', status: 'Completed' },
-    { date: 'March 12, 2026', title: 'Phase 13: Home Page Category Sections', status: 'Completed' },
-    { date: 'March 10, 2026', title: 'Phase 12: Team Hero Redesign', status: 'Completed' },
+const Developers = () => {
+  const [profile, setProfile] = useState({
+    name: 'Anikesh Roy',
+    bio: 'Crafting digital excellence with code and creativity.',
+    avatar: '',
+    htmlUrl: `https://github.com/${GITHUB_USERNAME}`,
+    location: '',
+    publicRepos: '—',
+    followers: '—',
+  });
+
+  const [repoStats, setRepoStats] = useState({
+    commits: '—',
+    contributors: '—',
+    stars: '—',
+    linesOfCode: '12K+',
+  });
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Fetch GitHub user profile
+        const userRes = await fetch(`https://api.github.com/users/${GITHUB_USERNAME}`);
+        const userData = await userRes.json();
+        if (userData.login) {
+          setProfile({
+            name: userData.name || userData.login,
+            bio: userData.bio || 'Crafting digital excellence with code and creativity.',
+            avatar: userData.avatar_url || '',
+            htmlUrl: userData.html_url || `https://github.com/${GITHUB_USERNAME}`,
+            location: userData.location || '',
+            publicRepos: userData.public_repos?.toString() || '—',
+            followers: userData.followers?.toString() || '—',
+          });
+        }
+
+        // Fetch repo info (stars)
+        const repoRes = await fetch(`https://api.github.com/repos/${GITHUB_REPO}`);
+        const repoData = await repoRes.json();
+        
+        // Fetch contributors
+        const contribRes = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contributors?per_page=100`);
+        const contribData = await contribRes.json();
+
+        // Fetch commit count from default branch
+        const commitsRes = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/commits?per_page=1`);
+        let commitCount = '100+';
+        const linkHeader = commitsRes.headers.get('Link');
+        if (linkHeader) {
+          const match = linkHeader.match(/page=(\d+)>; rel="last"/);
+          if (match) commitCount = match[1];
+        }
+
+        setRepoStats({
+          commits: commitCount,
+          contributors: Array.isArray(contribData) ? contribData.length.toString() : '1',
+          stars: repoData.stargazers_count?.toString() || '0',
+          linesOfCode: '12K+',
+        });
+      } catch (err) {
+        console.error('Failed to fetch GitHub data:', err);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  const devStats = [
+    { label: 'Total Commits', value: repoStats.commits, icon: <FiGitCommit />, color: 'purple' },
+    { label: 'Contributors', value: repoStats.contributors, icon: <FiUsers />, color: 'blue' },
+    { label: 'GitHub Stars', value: repoStats.stars, icon: <FiStar />, color: 'green' },
+    { label: 'Lines of Code', value: repoStats.linesOfCode, icon: <FiCode />, color: 'primary' },
   ];
 
   return (
@@ -45,28 +108,36 @@ const Developers = () => {
                 <div className="h-32 bg-gradient-to-r from-primary to-yellow-500" />
                 <div className="px-8 pb-10 text-center -mt-16">
                   <div className="w-32 h-32 rounded-3xl border-4 border-white dark:border-dark-card bg-gray-200 mx-auto overflow-hidden shadow-xl mb-6 relative group">
-                    <img 
-                      src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&q=80" 
-                      alt="Anikesh Roy" 
-                      className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500"
-                    />
+                    {profile.avatar ? (
+                      <img 
+                        src={profile.avatar} 
+                        alt={profile.name} 
+                        className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-primary/30 to-yellow-500/30 flex items-center justify-center">
+                        <FiGithub className="w-12 h-12 text-gray-400" />
+                      </div>
+                    )}
                   </div>
-                  <h3 className="text-3xl font-display font-black text-gray-900 dark:text-white mb-2">Anikesh Roy</h3>
+                  <h3 className="text-3xl font-display font-black text-gray-900 dark:text-white mb-2">{profile.name}</h3>
                   <p className="text-primary font-bold tracking-widest text-xs uppercase mb-6">Lead Developer & UI/UX Architect</p>
                   
                   <p className="text-gray-500 dark:text-gray-400 font-light mb-8 leading-relaxed">
-                    Crafting digital excellence with code and creativity. Dedicated to building institutional legacies through modern web technologies.
+                    {profile.bio}
                   </p>
 
                   <div className="flex justify-center gap-4">
                     {[
                       { icon: <FiLinkedin />, link: 'https://linkedin.com/' },
                       { icon: <FiInstagram />, link: 'https://instagram.com/' },
-                      { icon: <FiGithub />, link: 'https://github.com/' }
+                      { icon: <FiGithub />, link: `https://github.com/anikeshroyy` }
                     ].map((item, idx) => (
                       <motion.a 
                         key={idx}
                         href={item.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
                         whileHover={{ y: -5, scale: 1.1 }}
                         className="w-12 h-12 rounded-2xl bg-gray-100 dark:bg-white/5 flex items-center justify-center text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-primary transition-colors border border-transparent hover:border-primary/20"
                       >
@@ -78,9 +149,8 @@ const Developers = () => {
               </div>
             </motion.div>
 
-            {/* Stats and Logs */}
+            {/* Stats Grid */}
             <div className="lg:col-span-2 space-y-12">
-              {/* Stats Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 {devStats.map((stat, idx) => (
                   <motion.div
@@ -100,48 +170,24 @@ const Developers = () => {
                 ))}
               </div>
 
-              {/* Build Logs Section */}
-              <motion.div
+              {/* GitHub Repo Link Card */}
+              <motion.a
+                href={`https://github.com/${GITHUB_REPO}`}
+                target="_blank"
+                rel="noopener noreferrer"
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                className="bg-white dark:bg-dark-card rounded-[40px] border border-gray-100 dark:border-dark-border shadow-xl overflow-hidden"
+                whileHover={{ scale: 1.02 }}
+                className="block bg-gradient-to-br from-gray-900 to-gray-800 dark:from-gray-800 dark:to-dark-card rounded-[40px] border border-gray-700 dark:border-dark-border shadow-xl overflow-hidden p-10 text-center group"
               >
-                <div className="px-10 py-8 border-b border-gray-100 dark:border-white/5 flex items-center justify-between">
-                  <div>
-                    <h3 className="text-2xl font-display font-bold text-gray-900 dark:text-white">Project Build Logs</h3>
-                    <p className="text-gray-500 dark:text-gray-400 text-sm">Real-time status of the Aarambh 3.0 infrastructure</p>
-                  </div>
-                  <div className="px-4 py-2 rounded-full bg-green-500/10 text-green-500 text-[10px] font-black uppercase tracking-widest animate-pulse border border-green-500/20">
-                    Live Status: Healthy
-                  </div>
-                </div>
-                
-                <div className="p-10">
-                  <div className="space-y-8 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-gray-200 dark:before:via-white/10 before:to-transparent">
-                    {buildLogs.map((log, idx) => (
-                      <div key={idx} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
-                        <div className="flex items-center justify-center w-10 h-10 rounded-full border border-white dark:border-dark-card bg-gray-50 dark:bg-white/10 text-primary shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 transition-colors duration-500 group-hover:bg-primary group-hover:text-white">
-                          <FiCode className="w-4 h-4" />
-                        </div>
-                        <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-6 rounded-2xl bg-gray-50 dark:bg-white/5 border border-transparent group-hover:border-primary/20 transition-all">
-                          <div className="flex items-center justify-between space-x-2 mb-1">
-                            <div className="font-bold text-gray-900 dark:text-white">{log.title}</div>
-                            <time className="font-mono text-xs text-primary">{log.date}</time>
-                          </div>
-                          <div className="text-gray-500 dark:text-gray-400 text-sm font-light">Status: <span className="text-green-500 font-bold">{log.status}</span></div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="px-10 py-6 bg-gray-50 dark:bg-white/5 text-center">
-                  <p className="text-sm text-gray-500 dark:text-gray-400 italic">
-                    Pushing updates to GitHub repository... Logs will sync automatically.
-                  </p>
-                </div>
-              </motion.div>
+                <FiGithub className="w-12 h-12 text-white/60 mx-auto mb-4 group-hover:text-primary transition-colors" />
+                <h3 className="text-2xl font-display font-bold text-white mb-2">View Source Code</h3>
+                <p className="text-gray-400 text-sm mb-4">github.com/{GITHUB_REPO}</p>
+                <span className="inline-flex items-center gap-2 px-6 py-3 bg-primary/10 text-primary rounded-full text-sm font-bold group-hover:bg-primary group-hover:text-white transition-all">
+                  <FiGithub className="w-4 h-4" /> Open Repository
+                </span>
+              </motion.a>
             </div>
           </div>
         </div>
