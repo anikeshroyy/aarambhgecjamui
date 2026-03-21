@@ -1,8 +1,10 @@
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import SectionHeading from '../../components/SectionHeading';
 import { FiArrowRight, FiCalendar, FiMapPin, FiCheckCircle, FiImage, FiEdit3, FiLayers } from 'react-icons/fi';
 import principalImg from '../../assets/principal.jpg';
+import galleryService from '../../services/galleryService';
 
 import gallery1 from '../../assets/gallery1.gif';
 import gallery2 from '../../assets/gallery2.gif';
@@ -74,7 +76,7 @@ const MessageCard = ({ name, role, message, imageSrc }) => (
 );
 
 const About = () => {
-  const galleryImages = [
+  const staticGalleryImages = [
     gallery1,
     gallery2,
     gallery3,
@@ -82,6 +84,27 @@ const About = () => {
     gallery5,
     gallery6
   ];
+
+  const [glimpseImages, setGlimpseImages] = useState([]);
+
+  useEffect(() => {
+    const fetchGlimpses = async () => {
+      try {
+        const data = await galleryService.getAll(null, 'glimpses');
+        if (data && data.length > 0) {
+          const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+          setGlimpseImages(data.map(img => 
+            img.imageUrl.startsWith('/uploads') ? `${API_BASE}${img.imageUrl}` : img.imageUrl
+          ));
+        }
+      } catch (err) {
+        console.error('Failed to fetch glimpses:', err);
+      }
+    };
+    fetchGlimpses();
+  }, []);
+
+  const galleryImages = glimpseImages.length > 0 ? glimpseImages : staticGalleryImages;
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-dark-bg transition-colors duration-300">

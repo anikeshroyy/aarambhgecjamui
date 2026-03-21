@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { FiGithub, FiLinkedin, FiInstagram, FiCode, FiGitCommit, FiUsers, FiStar } from 'react-icons/fi';
+import { FiGithub, FiLinkedin, FiInstagram, FiCode, FiGitCommit, FiUsers, FiClock } from 'react-icons/fi';
 import SectionHeading from '../../components/SectionHeading';
 
 const GITHUB_USERNAME = 'anikeshroyy';
@@ -20,7 +20,7 @@ const Developers = () => {
   const [repoStats, setRepoStats] = useState({
     commits: '—',
     contributors: '—',
-    stars: '—',
+    lastCommit: '—',
     linesOfCode: '12K+',
   });
 
@@ -50,8 +50,9 @@ const Developers = () => {
         const contribRes = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contributors?per_page=100`);
         const contribData = await contribRes.json();
 
-        // Fetch commit count from default branch
+        // Fetch commit count and last commit date
         const commitsRes = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/commits?per_page=1`);
+        const commitsData = await commitsRes.json();
         let commitCount = '100+';
         const linkHeader = commitsRes.headers.get('Link');
         if (linkHeader) {
@@ -59,10 +60,22 @@ const Developers = () => {
           if (match) commitCount = match[1];
         }
 
+        let lastCommit = '—';
+        if (Array.isArray(commitsData) && commitsData.length > 0) {
+          const commitDate = new Date(commitsData[0].commit.author.date);
+          const now = new Date();
+          const diffMs = now - commitDate;
+          const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+          if (diffDays === 0) lastCommit = 'Today';
+          else if (diffDays === 1) lastCommit = 'Yesterday';
+          else if (diffDays < 7) lastCommit = `${diffDays}d ago`;
+          else lastCommit = commitDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        }
+
         setRepoStats({
           commits: commitCount,
           contributors: Array.isArray(contribData) ? contribData.length.toString() : '1',
-          stars: repoData.stargazers_count?.toString() || '0',
+          lastCommit,
           linesOfCode: '12K+',
         });
       } catch (err) {
@@ -76,7 +89,7 @@ const Developers = () => {
   const devStats = [
     { label: 'Total Commits', value: repoStats.commits, icon: <FiGitCommit />, color: 'purple' },
     { label: 'Contributors', value: repoStats.contributors, icon: <FiUsers />, color: 'blue' },
-    { label: 'GitHub Stars', value: repoStats.stars, icon: <FiStar />, color: 'green' },
+    { label: 'Last Commit', value: repoStats.lastCommit, icon: <FiClock />, color: 'green' },
     { label: 'Lines of Code', value: repoStats.linesOfCode, icon: <FiCode />, color: 'primary' },
   ];
 
@@ -170,24 +183,6 @@ const Developers = () => {
                 ))}
               </div>
 
-              {/* GitHub Repo Link Card */}
-              <motion.a
-                href={`https://github.com/${GITHUB_REPO}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                whileHover={{ scale: 1.02 }}
-                className="block bg-gradient-to-br from-gray-900 to-gray-800 dark:from-gray-800 dark:to-dark-card rounded-[40px] border border-gray-700 dark:border-dark-border shadow-xl overflow-hidden p-10 text-center group"
-              >
-                <FiGithub className="w-12 h-12 text-white/60 mx-auto mb-4 group-hover:text-primary transition-colors" />
-                <h3 className="text-2xl font-display font-bold text-white mb-2">View Source Code</h3>
-                <p className="text-gray-400 text-sm mb-4">github.com/{GITHUB_REPO}</p>
-                <span className="inline-flex items-center gap-2 px-6 py-3 bg-primary/10 text-primary rounded-full text-sm font-bold group-hover:bg-primary group-hover:text-white transition-all">
-                  <FiGithub className="w-4 h-4" /> Open Repository
-                </span>
-              </motion.a>
             </div>
           </div>
         </div>

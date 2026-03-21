@@ -13,7 +13,7 @@ const GalleryUpload = () => {
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState('');
 
-  const categories = ['technical', 'cultural', 'candid', 'stage'];
+  const categories = ['technical', 'cultural', 'candid', 'stage', 'highlights', 'glimpses'];
   const editions = ['3.0', '2.0', '1.0'];
 
   const handleImageChange = (e) => {

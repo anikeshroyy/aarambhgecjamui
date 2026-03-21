@@ -5,24 +5,28 @@ import CountdownTimer from '../../components/CountdownTimer';
 import SectionHeading from '../../components/SectionHeading';
 import eventsService from '../../services/eventsService';
 import sponsorsService from '../../services/sponsorsService';
+import galleryService from '../../services/galleryService';
 // We'll scaffold EventCard soon, importing it here ahead of time
 // import EventCard from '../../components/EventCard';
 
 const Home = () => {
   const [featuredEvents, setFeaturedEvents] = useState([]);
   const [sponsors, setSponsors] = useState([]);
+  const [highlightImages, setHighlightImages] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [eventsData, sponsorsData] = await Promise.all([
+        const [eventsData, sponsorsData, highlightsData] = await Promise.all([
           eventsService.getAll(),
-          sponsorsService.getAll()
+          sponsorsService.getAll(),
+          galleryService.getAll(null, 'highlights'),
         ]);
         
         setFeaturedEvents(eventsData.slice(0, 3));
         setSponsors(sponsorsData);
+        setHighlightImages(highlightsData || []);
       } catch (error) {
         console.error('Failed to fetch home data:', error);
       } finally {
@@ -381,6 +385,14 @@ const Home = () => {
       </section>
 
       {/* Past Highlights Section */}
+      {(() => {
+        const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+        const images = highlightImages.length > 0 
+          ? highlightImages.map(img => img.imageUrl.startsWith('/uploads') ? `${API_BASE}${img.imageUrl}` : img.imageUrl)
+          : Array.from({length: 10}, (_, i) => `https://images.unsplash.com/photo-${1500000000000 + i * 10000}?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80`);
+        const row1 = images;
+        const row2 = [...images].reverse();
+        return (
       <section className="py-24 bg-white dark:bg-dark-card transition-colors duration-300 overflow-hidden relative">
         <div className="container mx-auto px-4 mb-16 text-center">
           <SectionHeading 
@@ -398,29 +410,20 @@ const Home = () => {
               transition={{ repeat: Infinity, duration: 30, ease: "linear" }}
               className="flex gap-6 whitespace-nowrap"
             >
-              {[1,2,3,4,5,6,7,8,9,10].map(i => (
+              {row1.map((src, i) => (
                 <div key={i} className="w-80 h-48 flex-shrink-0 rounded-2xl overflow-hidden shadow-lg border border-gray-100 dark:border-white/10 group-hover:scale-105 transition-transform duration-500">
-                  <img 
-                    src={`https://images.unsplash.com/photo-${1500000000000 + i * 10000}?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80`} 
-                    alt="Highlight" 
-                    className="w-full h-full object-cover"
-                  />
+                  <img src={src} alt="Highlight" className="w-full h-full object-cover" />
                 </div>
               ))}
             </motion.div>
-            {/* Same set duplicated for infinite loop */}
             <motion.div 
               animate={{ x: [0, -1000] }}
               transition={{ repeat: Infinity, duration: 30, ease: "linear" }}
               className="flex gap-6 whitespace-nowrap ml-6"
             >
-              {[1,2,3,4,5,6,7,8,9,10].map(i => (
+              {row1.map((src, i) => (
                 <div key={i} className="w-80 h-48 flex-shrink-0 rounded-2xl overflow-hidden shadow-lg border border-gray-100 dark:border-white/10 group-hover:scale-105 transition-transform duration-500">
-                  <img 
-                    src={`https://images.unsplash.com/photo-${1500000000000 + i * 10000}?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80`} 
-                    alt="Highlight" 
-                    className="w-full h-full object-cover"
-                  />
+                  <img src={src} alt="Highlight" className="w-full h-full object-cover" />
                 </div>
               ))}
             </motion.div>
@@ -433,13 +436,9 @@ const Home = () => {
               transition={{ repeat: Infinity, duration: 35, ease: "linear" }}
               className="flex gap-6 whitespace-nowrap"
             >
-              {[11,12,13,14,15,16,17,18,19,20].map(i => (
+              {row2.map((src, i) => (
                 <div key={i} className="w-80 h-48 flex-shrink-0 rounded-2xl overflow-hidden shadow-lg border border-gray-100 dark:border-white/10 group-hover:scale-105 transition-transform duration-500">
-                  <img 
-                    src={`https://images.unsplash.com/photo-${1511795409834 + i * 5000}?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80`} 
-                    alt="Highlight" 
-                    className="w-full h-full object-cover"
-                  />
+                  <img src={src} alt="Highlight" className="w-full h-full object-cover" />
                 </div>
               ))}
             </motion.div>
@@ -448,19 +447,18 @@ const Home = () => {
               transition={{ repeat: Infinity, duration: 35, ease: "linear" }}
               className="flex gap-6 whitespace-nowrap ml-6"
             >
-              {[11,12,13,14,15,16,17,18,19,20].map(i => (
+              {row2.map((src, i) => (
                 <div key={i} className="w-80 h-48 flex-shrink-0 rounded-2xl overflow-hidden shadow-lg border border-gray-100 dark:border-white/10 group-hover:scale-105 transition-transform duration-500">
-                  <img 
-                    src={`https://images.unsplash.com/photo-${1511795409834 + i * 5000}?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80`} 
-                    alt="Highlight" 
-                    className="w-full h-full object-cover"
-                  />
+                  <img src={src} alt="Highlight" className="w-full h-full object-cover" />
                 </div>
               ))}
             </motion.div>
           </div>
         </div>
       </section>
+        );
+      })()}
+
 
       {/* Ready for Aarambh Section */}
       <section className="py-24 bg-gray-900 text-white relative overflow-hidden">
